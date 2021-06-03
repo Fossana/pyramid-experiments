@@ -3,6 +3,7 @@
 #include <iostream>
 #include <limits>
 #include <cmath>
+#include <iomanip>
 
 Pyramid::Pyramid(int baseLength, int height):
 	baseLength(PyramidDimension::BASE_LENGTH, baseLength),
@@ -13,8 +14,9 @@ Pyramid::Pyramid(int baseLength, int height):
 	slantLength = std::make_pair(PyramidDimension::SLANT_LENGTH, CalculateSlantLength());
 	lateralEdgeLength = std::make_pair(PyramidDimension::LATERAL_EDGE_LENGTH, CalculateLateralEdgeLength());
 
+	rightAngle = std::make_pair(PyramidDimension::RIGHT_ANGLE, const_pi() * 0.5);
 	slantAngle = std::make_pair(PyramidDimension::SLANT_ANGLE, CalculateSlantAngle());
-	ninetyDegreesMinusSlantAngle = std::make_pair(PyramidDimension::NINETY_DEGREES_MINUS_SLANT_ANGLE, CalculateNinetyDegreesMinusSlantAngle());
+	rightAngleMinusSlantAngle = std::make_pair(PyramidDimension::NINETY_DEGREES_MINUS_SLANT_ANGLE, CalculateRightAngleMinusSlantAngle());
 	vertexAngle = std::make_pair(PyramidDimension::VERTEX_ANGLE, CalculateVertexAngle());
 	cornerAngle = std::make_pair(PyramidDimension::CORNER_ANGLE, CalculateCornerAngle());
 
@@ -28,24 +30,34 @@ Pyramid::Pyramid(int baseLength, int height):
 	InitializeAreas();
 }
 
+double Pyramid::GetBasePerimeter() const
+{
+	return basePerimeter.second;
+}
+
+double Pyramid::GetHeight() const
+{
+	return height.second;
+}
+
 void Pyramid::Print()
 {
-	std::cout << "base length: " << baseLength.second << '\n';
-	std::cout << "height: " << height.second << '\n';
-	std::cout << "base perimeter: " << basePerimeter.second << '\n';
-	std::cout << "base diagonal: " << baseDiagonal.second << '\n';
-	std::cout << "slant length: " << slantLength.second << '\n';
-	std::cout << "lateral edge length: " << lateralEdgeLength.second << '\n';
+	std::cout << "base length: " << std::setprecision(15) << baseLength.second << '\n';
+	std::cout << "height: " << std::setprecision(15) << height.second << '\n';
+	std::cout << "base perimeter: " << std::setprecision(15) << basePerimeter.second << '\n';
+	std::cout << "base diagonal: " << std::setprecision(15) << baseDiagonal.second << '\n';
+	std::cout << "slant length: " << std::setprecision(15) << slantLength.second << '\n';
+	std::cout << "lateral edge length: " << std::setprecision(15) << lateralEdgeLength.second << '\n';
 
-	std::cout << "slant angle: " << slantAngle.second * 180.0 / const_pi() << '\n';
-	std::cout << "90 - slant angle: " << ninetyDegreesMinusSlantAngle.second * 180.0 / const_pi() << '\n';
-	std::cout << "vertex angle: " << vertexAngle.second * 180.0 / const_pi() << '\n';
-	std::cout << "corner angle: " << cornerAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << "slant angle: " << std::setprecision(15) << slantAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << "90 - slant angle: " << std::setprecision(15) << rightAngleMinusSlantAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << "vertex angle: " << std::setprecision(15) << vertexAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << "corner angle: " << std::setprecision(15) << cornerAngle.second * 180.0 / const_pi() << '\n';
 
-	std::cout << "base area: " << baseArea.second << '\n';
-	std::cout << "lateral face area: " << lateralFaceArea.second << '\n';
-	std::cout << "surface area including base: " << surfaceAreaIncludingBase.second << '\n';
-	std::cout << "surface area not including base: " << surfaceAreaNotIncludingBase.second << '\n';
+	std::cout << "base area: " << std::setprecision(15) << baseArea.second << '\n';
+	std::cout << "lateral face area: " << std::setprecision(15) << lateralFaceArea.second << '\n';
+	std::cout << "surface area including base: " << std::setprecision(15) << surfaceAreaIncludingBase.second << '\n';
+	std::cout << "surface area not including base: " << std::setprecision(15) << surfaceAreaNotIncludingBase.second << '\n';
 }
 
 double Pyramid::CalculateAbsoluteError(double actual, double expected)
@@ -56,12 +68,14 @@ double Pyramid::CalculateAbsoluteError(double actual, double expected)
 GetClosestResult Pyramid::GetClosest(double target)
 {
 	GetClosestResult closest1 = GetClosest_Helper(lengths, target);
-	GetClosestResult closest2 = GetClosest_Helper(angles, target);
-	GetClosestResult closest3 = GetClosest_Helper(areas, target);
+	GetClosestResult closest2 = GetClosest_Helper(angles1, target);
+	// GetClosestResult closest3 = GetClosest_Helper(angles2, target);
+	GetClosestResult closest4 = GetClosest_Helper(areas, target);
 
 	double absoluteError1 = CalculateAbsoluteError(closest1.value, target);
 	double absoluteError2 = CalculateAbsoluteError(closest2.value, target);
-	double absoluteError3 = CalculateAbsoluteError(closest3.value, target);
+	// double absoluteError3 = CalculateAbsoluteError(closest3.value, target);
+	double absoluteError4 = CalculateAbsoluteError(closest4.value, target);
 
 	GetClosestResult retval = closest1;
 	double minAbsoluteError = absoluteError1;
@@ -72,9 +86,15 @@ GetClosestResult Pyramid::GetClosest(double target)
 		minAbsoluteError = absoluteError2;
 	}
 
-	if (absoluteError3 < minAbsoluteError)
+	//if (absoluteError3 < minAbsoluteError)
+	//{
+	//	retval = closest3;
+	//	minAbsoluteError = absoluteError3;
+	//}
+
+	if (absoluteError4 < minAbsoluteError)
 	{
-		retval = closest3;
+		retval = closest4;
 	}
 
 	return retval;
@@ -84,8 +104,6 @@ GetClosestResult Pyramid::GetClosest_Helper(const std::vector<std::pair<PyramidD
 {
 	GetClosestResult closest;
 	double minAbsoluteError = std::numeric_limits<double>::max();
-
-	std::vector<double> allowedFactors = { 0.1, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 10.0 };
 
 	for (int i = 0; i < dimensions.size(); ++i)
 	{
@@ -100,7 +118,7 @@ GetClosestResult Pyramid::GetClosest_Helper(const std::vector<std::pair<PyramidD
 
 			for (int k = 0; k < allowedFactors.size(); ++k)
 			{
-				double scaledTemp = temp / allowedFactors[k];
+				double scaledTemp = temp * allowedFactors[k];
 				double absoluteError = CalculateAbsoluteError(scaledTemp, target);
 				if (absoluteError < minAbsoluteError)
 				{
@@ -128,10 +146,14 @@ void Pyramid::InitializeLengths()
 
 void Pyramid::InitializeAngles()
 {
-	angles.push_back(&slantAngle);
-	angles.push_back(&ninetyDegreesMinusSlantAngle);
-	angles.push_back(&vertexAngle);
-	angles.push_back(&cornerAngle);
+	angles1.push_back(&rightAngle);
+	angles1.push_back(&slantAngle);
+	angles1.push_back(&rightAngleMinusSlantAngle);
+	angles1.push_back(&vertexAngle);
+	angles1.push_back(&cornerAngle);
+	//angles2.push_back(&rightAngle);
+	//angles2.push_back(&vertexAngle);
+	//angles2.push_back(&cornerAngle);
 }
 
 void Pyramid::InitializeAreas()
@@ -170,7 +192,7 @@ double Pyramid::CalculateSlantAngle()
 	return atan(height.second / halfBaseLength);
 }
 
-double Pyramid::CalculateNinetyDegreesMinusSlantAngle()
+double Pyramid::CalculateRightAngleMinusSlantAngle()
 {
 	return 0.5 * const_pi() - slantAngle.second;
 }

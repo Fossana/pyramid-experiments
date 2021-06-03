@@ -5,12 +5,14 @@
 #include <cmath>
 #include <limits>
 
-constexpr int MIN_BASE_LENGTH = 1;
-constexpr int MAX_BASE_LENGTH = 1000;
-constexpr int MIN_HEIGHT = 1;
-constexpr int MAX_HEIGHT = 1000;
+constexpr int MIN_BASE_LENGTH = 10;
+constexpr int MAX_BASE_LENGTH = 800;
+constexpr int MIN_HEIGHT = 10;
+constexpr int MAX_HEIGHT = 600;
 constexpr double MIN_HEIGHT_TO_BASE_RATIO = 0.2;
 constexpr double MAX_HEIGHT_TO_BASE_RATIO = 5.0;
+constexpr double EQUATORIAL_CIRCUMFERENCE = 40075.017;
+constexpr double POLAR_RADIUS = 6356.752;
 
 double CalculateRelativeError(double actual, double expected)
 {
@@ -22,6 +24,9 @@ int main()
     double pi = const_pi();
     double phi = const_phi();
     double e = const_e();
+
+    
+    double equatorialCircumferenceToPolarRadius = EQUATORIAL_CIRCUMFERENCE / POLAR_RADIUS;
 
     Pyramid khufu(440, 280);
     khufu.Print();
@@ -44,11 +49,14 @@ int main()
     std::cout << '\n';
 
     double khufuRelativeErrorSum = khufuClosestPi.relativeError + khufuClosestPhi.relativeError + khufuClosestE.relativeError;
+    
     std::cout << "Great Pyramid relative error sum: " << khufuRelativeErrorSum << '\n';
+    std::cout << EQUATORIAL_CIRCUMFERENCE * 1000.0 / (khufu.GetBasePerimeter() * const_pi() / 6.0) << '\n';
+    std::cout << POLAR_RADIUS * 1000.0 / (khufu.GetHeight() * const_pi() / 6.0) << '\n';
     std::cout << '\n';
 
-    int moreAccurateThanKhufuCount = 0;
-    int lessAccurateThanKhufuCount = 0;
+    double moreAccurateThanKhufuCount = 0.0;
+    double lessAccurateThanKhufuCount = 0.0;
     int pyramidCount = 0;
 
     int winningBaseLength = 0;
@@ -60,15 +68,23 @@ int main()
     {
         for (int jHeight = MIN_HEIGHT; jHeight <= MAX_HEIGHT; ++jHeight)
         {
+            // Check if the height to base ratio is acceptable
             double heightToBaseRatio = (double) jHeight / (double) iBaseLength;
             if (heightToBaseRatio < MIN_HEIGHT_TO_BASE_RATIO || heightToBaseRatio > MAX_HEIGHT_TO_BASE_RATIO)
             {
                 continue;
             }
 
+            // Check if the ratio of the base perimeter to the height is acceptable
+            Pyramid pyramid(iBaseLength, jHeight);
+            //double basePerimeterToHeight = pyramid.GetBasePerimeter() / pyramid.GetHeight();
+            //if (CalculateRelativeError(basePerimeterToHeight, equatorialCircumferenceToPolarRadius) > 0.01)
+            //{
+            //    continue;
+            //}
+
             ++pyramidCount;
 
-            Pyramid pyramid(iBaseLength, jHeight);
             GetClosestResult closestPi = pyramid.GetClosest(pi);
             GetClosestResult closestPhi = pyramid.GetClosest(phi);
             GetClosestResult closestE = pyramid.GetClosest(e);
@@ -88,11 +104,20 @@ int main()
 
             if (relativeErrorSum < khufuRelativeErrorSum)
             {
-                ++moreAccurateThanKhufuCount;
+                moreAccurateThanKhufuCount += 1.0;
+                //std::cout << "height: " << jHeight << '\n';
+                //std::cout << "base length: " << iBaseLength << '\n';
+                //std::cout << EQUATORIAL_CIRCUMFERENCE * 1000.0 / (pyramid.GetBasePerimeter() * const_pi() / 6.0) << '\n';
+                //std::cout << '\n';
             }
             else if (relativeErrorSum > khufuRelativeErrorSum)
             {
-                ++lessAccurateThanKhufuCount;
+                lessAccurateThanKhufuCount += 1.0;
+            }
+            else // same height to base length ratio as Khufu
+            {
+                moreAccurateThanKhufuCount += 0.5;
+                lessAccurateThanKhufuCount += 0.5;
             }
         }
     }
