@@ -77,7 +77,7 @@ int main()
     int winningBaseLength = 0;
     int winningHeight = 0;
     double minRelativeErrorSum = std::numeric_limits<double>::max();
-    double relativeErrorSumSum = 0.0;
+    double relativeErrorSumSum = khufuRelativeErrorSum;
 
     for (int iBaseLength = MIN_BASE_LENGTH; iBaseLength <= MAX_BASE_LENGTH; ++iBaseLength)
     {
@@ -98,7 +98,7 @@ int main()
             }
 
             // Check if the volume is acceptable
-            double volume = (double) iBaseLength * (double) iBaseLength * (double) jHeight / 3.0;;
+            double volume = (double) iBaseLength * (double) iBaseLength * (double) jHeight / 3.0;
             if (volume < MIN_VOLUME || volume > MAX_VOLUME)
             {
                 continue;
@@ -145,12 +145,8 @@ int main()
             {
                 ++lessAccurateThanKhufuCount;
             }
-            else // same height to base length ratio as Khufu
-            {
-                std::cout << "shouldn't happen\n";
-            }
 
-            processedHeightToBaseLengthRatios.insert(MathUtilities::ReduceFraction(jHeight, iBaseLength));
+            processedHeightToBaseLengthRatios.insert(reducedHeightToBaseRatio);
         }
     }
 
@@ -163,5 +159,5 @@ int main()
     std::cout << "number of pyramids with a better combined relative error than the Great Pyramid: " << moreAccurateThanKhufuCount << '\n';
     std::cout << "number of pyramids with a worse combined relative error than the Great Pyramid: " << lessAccurateThanKhufuCount << '\n';
 
-    std::cout << "the Great Pyramid is more accurate than " << std::setprecision(15) << (double)lessAccurateThanKhufuCount / (double) (lessAccurateThanKhufuCount + moreAccurateThanKhufuCount) << '\n';
+    std::cout << "the Great Pyramid is more accurate than " << std::setprecision(15) << (double) lessAccurateThanKhufuCount / (double) (lessAccurateThanKhufuCount + moreAccurateThanKhufuCount) << '\n';
 }
