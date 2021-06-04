@@ -14,15 +14,17 @@ enum class PyramidDimension
     BASE_DIAGONAL,
     SLANT_LENGTH,
     LATERAL_EDGE_LENGTH,
-    SLANT_ANGLE,
-    NINETY_DEGREES_MINUS_SLANT_ANGLE,
-    VERTEX_ANGLE,
-    CORNER_ANGLE,
+    WEST_EAST_CROSS_SECTION_CORNER_ANGLE,
+    WEST_EAST_CROSS_SECTION_VERTEX_ANGLE,
+    LATERAL_FACE_CORNER_ANGLE,
+    LATERAL_FACE_VERTEX_ANGLE,
+    SOUTHWEST_NORTHEAST_CROSS_SECTION_CORNER_ANGLE,
+    SOUTHWEST_NORTHEAST_CROSS_SECTION_VERTEX_ANGLE,
     BASE_AREA,
     LATERAL_FACE_AREA,
     SURFACE_AREA_NOT_INCLUDING_BASE,
     SURFACE_AREA_INCLUDING_BASE,
-    RIGHT_ANGLE
+    VOLUME
 };
 
 static const char* PyramidDimensionStrings[] =
@@ -33,19 +35,31 @@ static const char* PyramidDimensionStrings[] =
     "BASE_DIAGONAL",
     "SLANT_LENGTH",
     "LATERAL_EDGE_LENGTH",
-    "SLANT_ANGLE",
-    "RIGHT_ANGLE_MINUS_SLANT_ANGLE",
-    "VERTEX_ANGLE",
-    "CORNER_ANGLE",
+    "WEST_EAST_CROSS_SECTION_CORNER_ANGLE",
+    "WEST_EAST_CROSS_SECTION_VERTEX_ANGLE",
+    "LATERAL_FACE_CORNER_ANGLE",
+    "LATERAL_FACE_VERTEX_ANGLE",
+    "SOUTHWEST_NORTHEAST_CROSS_SECTION_CORNER_ANGLE",
+    "SOUTHWEST_NORTHEAST_CROSS_SECTION_VERTEX_ANGLE",
     "BASE_AREA",
     "LATERAL_FACE_AREA",
     "SURFACE_AREA_NOT_INCLUDING_BASE",
     "SURFACE_AREA_INCLUDING_BASE",
-    "RIGHT_ANGLE"
-
+    "VOLUME"
 };
 
-static const std::vector<double> allowedFactors = { 0.1, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 10.0 };
+static const std::vector<double> allowedFactors =
+{
+    0.1,
+    0.125,
+    0.25,
+    0.5,
+    1.0,
+    2.0,
+    4.0,
+    8.0,
+    10.0
+};
 
 struct GetClosestResult
 {
@@ -72,6 +86,7 @@ public:
     void Print();
     double GetBasePerimeter() const;
     double GetHeight() const;
+    double GetVolume() const;
 
 private:
     std::pair<PyramidDimension, double> baseLength;
@@ -81,20 +96,24 @@ private:
     std::pair<PyramidDimension, double> slantLength;
     std::pair<PyramidDimension, double> lateralEdgeLength;
 
-    std::pair<PyramidDimension, double> slantAngle;
-    std::pair<PyramidDimension, double> rightAngleMinusSlantAngle;
-    std::pair<PyramidDimension, double> vertexAngle;
-    std::pair<PyramidDimension, double> cornerAngle;
-    std::pair<PyramidDimension, double> rightAngle;
+    std::pair<PyramidDimension, double> westEastCrossSectionCornerAngle;
+    std::pair<PyramidDimension, double> westEastCrossSectionVertexAngle;
+    std::pair<PyramidDimension, double> lateralFaceCornerAngle;
+    std::pair<PyramidDimension, double> lateralFaceVertexAngle;
+    std::pair<PyramidDimension, double> southwestNortheastCrossSectionCornerAngle;
+    std::pair<PyramidDimension, double> southwestNortheastCrossSectionVertexAngle;
 
     std::pair<PyramidDimension, double> baseArea;
     std::pair<PyramidDimension, double> lateralFaceArea;
     std::pair<PyramidDimension, double> surfaceAreaNotIncludingBase;
     std::pair<PyramidDimension, double> surfaceAreaIncludingBase;
 
+    std::pair<PyramidDimension, double> volume;
+
     std::vector<std::pair<PyramidDimension, double>*> lengths;
     std::vector<std::pair<PyramidDimension, double>*> angles1;
-    // std::vector<std::pair<PyramidDimension, double>*> angles2;
+    std::vector<std::pair<PyramidDimension, double>*> angles2;
+    std::vector<std::pair<PyramidDimension, double>*> angles3;
     std::vector<std::pair<PyramidDimension, double>*> areas;
 
     GetClosestResult GetClosest_Helper(const std::vector<std::pair<PyramidDimension, double>*>& dimensions, double target);
@@ -109,14 +128,20 @@ private:
     double CalculateBaseDiagonal();
     double CalculateSlantLength();
     double CalculateLateralEdgeLength();
-    double CalculateSlantAngle();
-    double CalculateRightAngleMinusSlantAngle();
-    double CalculateVertexAngle();
-    double CalculateCornerAngle();
+ 
+    double CalculateWestEastCrossSectionCornerAngle();
+    double CalculateWestEastCrossSectionVertexAngle();
+    double CalculateLateralFaceCornerAngle();
+    double CalculateLateralFaceVertexAngle();
+    double CalculateSouthwestNortheastCrossSectionCornerAngle();
+    double CalculateSouthwestNortheastCrossSectionVertexAngle();
+
     double CalculateBaseArea();
     double CalculateLateralFaceArea();
     double CalculateSurfaceAreaNotIncludingBase();
     double CalculateSurfaceAreaIncludingBase();
+
+    double CalculateVolume();
 };
 
 #endif

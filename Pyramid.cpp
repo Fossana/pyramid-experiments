@@ -14,16 +14,19 @@ Pyramid::Pyramid(int baseLength, int height):
 	slantLength = std::make_pair(PyramidDimension::SLANT_LENGTH, CalculateSlantLength());
 	lateralEdgeLength = std::make_pair(PyramidDimension::LATERAL_EDGE_LENGTH, CalculateLateralEdgeLength());
 
-	rightAngle = std::make_pair(PyramidDimension::RIGHT_ANGLE, const_pi() * 0.5);
-	slantAngle = std::make_pair(PyramidDimension::SLANT_ANGLE, CalculateSlantAngle());
-	rightAngleMinusSlantAngle = std::make_pair(PyramidDimension::NINETY_DEGREES_MINUS_SLANT_ANGLE, CalculateRightAngleMinusSlantAngle());
-	vertexAngle = std::make_pair(PyramidDimension::VERTEX_ANGLE, CalculateVertexAngle());
-	cornerAngle = std::make_pair(PyramidDimension::CORNER_ANGLE, CalculateCornerAngle());
+	westEastCrossSectionCornerAngle = std::make_pair(PyramidDimension::WEST_EAST_CROSS_SECTION_CORNER_ANGLE, CalculateWestEastCrossSectionCornerAngle());
+	westEastCrossSectionVertexAngle = std::make_pair(PyramidDimension::WEST_EAST_CROSS_SECTION_VERTEX_ANGLE, CalculateWestEastCrossSectionVertexAngle());
+	lateralFaceCornerAngle = std::make_pair(PyramidDimension::LATERAL_FACE_CORNER_ANGLE, CalculateLateralFaceCornerAngle());
+	lateralFaceVertexAngle = std::make_pair(PyramidDimension::LATERAL_FACE_VERTEX_ANGLE, CalculateLateralFaceVertexAngle());
+	southwestNortheastCrossSectionCornerAngle = std::make_pair(PyramidDimension::SOUTHWEST_NORTHEAST_CROSS_SECTION_CORNER_ANGLE, CalculateSouthwestNortheastCrossSectionCornerAngle());
+	southwestNortheastCrossSectionVertexAngle = std::make_pair(PyramidDimension::SOUTHWEST_NORTHEAST_CROSS_SECTION_VERTEX_ANGLE, CalculateSouthwestNortheastCrossSectionVertexAngle());
 
 	baseArea = std::make_pair(PyramidDimension::BASE_AREA, CalculateBaseArea());
 	lateralFaceArea = std::make_pair(PyramidDimension::LATERAL_FACE_AREA, CalculateLateralFaceArea());
 	surfaceAreaNotIncludingBase = std::make_pair(PyramidDimension::SURFACE_AREA_NOT_INCLUDING_BASE, CalculateSurfaceAreaNotIncludingBase());
 	surfaceAreaIncludingBase = std::make_pair(PyramidDimension::SURFACE_AREA_INCLUDING_BASE, CalculateSurfaceAreaIncludingBase());
+
+	volume = std::make_pair(PyramidDimension::VOLUME, CalculateVolume());
 
 	InitializeLengths();
 	InitializeAngles();
@@ -49,15 +52,19 @@ void Pyramid::Print()
 	std::cout << "slant length: " << std::setprecision(15) << slantLength.second << '\n';
 	std::cout << "lateral edge length: " << std::setprecision(15) << lateralEdgeLength.second << '\n';
 
-	std::cout << "slant angle: " << std::setprecision(15) << slantAngle.second * 180.0 / const_pi() << '\n';
-	std::cout << "90 - slant angle: " << std::setprecision(15) << rightAngleMinusSlantAngle.second * 180.0 / const_pi() << '\n';
-	std::cout << "vertex angle: " << std::setprecision(15) << vertexAngle.second * 180.0 / const_pi() << '\n';
-	std::cout << "corner angle: " << std::setprecision(15) << cornerAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << PyramidDimensionStrings[(int) westEastCrossSectionCornerAngle.first] << ": " << std::setprecision(15) << westEastCrossSectionCornerAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << PyramidDimensionStrings[(int) westEastCrossSectionVertexAngle.first] << ": " << std::setprecision(15) << westEastCrossSectionVertexAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << PyramidDimensionStrings[(int) lateralFaceCornerAngle.first] << ": " << std::setprecision(15) << lateralFaceCornerAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << PyramidDimensionStrings[(int) lateralFaceVertexAngle.first] << ": " << std::setprecision(15) << lateralFaceVertexAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << PyramidDimensionStrings[(int) southwestNortheastCrossSectionCornerAngle.first] << ": " << std::setprecision(15) << southwestNortheastCrossSectionCornerAngle.second * 180.0 / const_pi() << '\n';
+	std::cout << PyramidDimensionStrings[(int) southwestNortheastCrossSectionVertexAngle.first] << ": " << std::setprecision(15) << southwestNortheastCrossSectionVertexAngle.second * 180.0 / const_pi() << '\n';
 
 	std::cout << "base area: " << std::setprecision(15) << baseArea.second << '\n';
 	std::cout << "lateral face area: " << std::setprecision(15) << lateralFaceArea.second << '\n';
 	std::cout << "surface area including base: " << std::setprecision(15) << surfaceAreaIncludingBase.second << '\n';
 	std::cout << "surface area not including base: " << std::setprecision(15) << surfaceAreaNotIncludingBase.second << '\n';
+
+	std::cout << PyramidDimensionStrings[(int) volume.first] << ": " << std::setprecision(15) << volume.second << '\n';
 }
 
 double Pyramid::CalculateAbsoluteError(double actual, double expected)
@@ -65,17 +72,24 @@ double Pyramid::CalculateAbsoluteError(double actual, double expected)
 	return abs(actual - expected);
 }
 
+double Pyramid::GetVolume() const
+{
+	return volume.second;
+}
+
 GetClosestResult Pyramid::GetClosest(double target)
 {
 	GetClosestResult closest1 = GetClosest_Helper(lengths, target);
 	GetClosestResult closest2 = GetClosest_Helper(angles1, target);
-	// GetClosestResult closest3 = GetClosest_Helper(angles2, target);
-	GetClosestResult closest4 = GetClosest_Helper(areas, target);
+	GetClosestResult closest3 = GetClosest_Helper(angles2, target);
+	GetClosestResult closest4 = GetClosest_Helper(angles3, target);
+	GetClosestResult closest5 = GetClosest_Helper(areas, target);
 
 	double absoluteError1 = CalculateAbsoluteError(closest1.value, target);
 	double absoluteError2 = CalculateAbsoluteError(closest2.value, target);
-	// double absoluteError3 = CalculateAbsoluteError(closest3.value, target);
+	double absoluteError3 = CalculateAbsoluteError(closest3.value, target);
 	double absoluteError4 = CalculateAbsoluteError(closest4.value, target);
+	double absoluteError5 = CalculateAbsoluteError(closest5.value, target);
 
 	GetClosestResult retval = closest1;
 	double minAbsoluteError = absoluteError1;
@@ -86,15 +100,21 @@ GetClosestResult Pyramid::GetClosest(double target)
 		minAbsoluteError = absoluteError2;
 	}
 
-	//if (absoluteError3 < minAbsoluteError)
-	//{
-	//	retval = closest3;
-	//	minAbsoluteError = absoluteError3;
-	//}
+	if (absoluteError3 < minAbsoluteError)
+	{
+		retval = closest3;
+		minAbsoluteError = absoluteError3;
+	}
 
 	if (absoluteError4 < minAbsoluteError)
 	{
 		retval = closest4;
+		minAbsoluteError = absoluteError4;
+	}
+
+	if (absoluteError5 < minAbsoluteError)
+	{
+		retval = closest5;
 	}
 
 	return retval;
@@ -114,7 +134,7 @@ GetClosestResult Pyramid::GetClosest_Helper(const std::vector<std::pair<PyramidD
 				continue;
 			}
 
-			double temp = (*dimensions[i]).second / (*dimensions[j]).second;
+			double temp = dimensions[i]->second / dimensions[j]->second;
 
 			for (int k = 0; k < allowedFactors.size(); ++k)
 			{
@@ -146,14 +166,14 @@ void Pyramid::InitializeLengths()
 
 void Pyramid::InitializeAngles()
 {
-	angles1.push_back(&rightAngle);
-	angles1.push_back(&slantAngle);
-	angles1.push_back(&rightAngleMinusSlantAngle);
-	angles1.push_back(&vertexAngle);
-	angles1.push_back(&cornerAngle);
-	//angles2.push_back(&rightAngle);
-	//angles2.push_back(&vertexAngle);
-	//angles2.push_back(&cornerAngle);
+	angles1.push_back(&westEastCrossSectionCornerAngle);
+	angles1.push_back(&westEastCrossSectionVertexAngle);
+
+	angles2.push_back(&lateralFaceCornerAngle);
+	angles2.push_back(&lateralFaceVertexAngle);
+
+	angles3.push_back(&southwestNortheastCrossSectionCornerAngle);
+	angles3.push_back(&southwestNortheastCrossSectionVertexAngle);
 }
 
 void Pyramid::InitializeAreas()
@@ -186,27 +206,40 @@ double Pyramid::CalculateLateralEdgeLength()
 	return sqrt(halfBaseLength * halfBaseLength + slantLength.second * slantLength.second);
 }
 
-double Pyramid::CalculateSlantAngle()
+double Pyramid::CalculateWestEastCrossSectionCornerAngle()
 {
 	double halfBaseLength = 0.5 * baseLength.second;
 	return atan(height.second / halfBaseLength);
 }
 
-double Pyramid::CalculateRightAngleMinusSlantAngle()
+double Pyramid::CalculateWestEastCrossSectionVertexAngle()
 {
-	return 0.5 * const_pi() - slantAngle.second;
+	double halfBaseLength = 0.5 * baseLength.second;
+	return 2.0 * atan(halfBaseLength / height.second);
 }
 
-double Pyramid::CalculateVertexAngle()
+double Pyramid::CalculateLateralFaceCornerAngle()
+{
+	double halfBaseLength = 0.5 * baseLength.second;
+	return atan(slantLength.second / halfBaseLength);
+}
+
+double Pyramid::CalculateLateralFaceVertexAngle()
 {
 	double halfBaseLength = 0.5 * baseLength.second;
 	return 2.0 * atan(halfBaseLength / slantLength.second);
 }
 
-double Pyramid::CalculateCornerAngle()
+double Pyramid::CalculateSouthwestNortheastCrossSectionCornerAngle()
 {
-	double halfBaseLength = 0.5 * baseLength.second;
-	return atan(slantLength.second / halfBaseLength);
+	double halfBaseDiagonal = 0.5 * CalculateBaseDiagonal();
+	return atan(height.second / halfBaseDiagonal);
+}
+
+double Pyramid::CalculateSouthwestNortheastCrossSectionVertexAngle()
+{
+	double halfBaseDiagonal = 0.5 * CalculateBaseDiagonal();
+	return 2.0 * atan(halfBaseDiagonal / height.second);
 }
 
 double Pyramid::CalculateBaseArea()
@@ -227,4 +260,9 @@ double Pyramid::CalculateSurfaceAreaNotIncludingBase()
 double Pyramid::CalculateSurfaceAreaIncludingBase()
 {
 	return 4.0 * lateralFaceArea.second + baseArea.second;
+}
+
+double Pyramid::CalculateVolume()
+{
+	return baseLength.second * baseLength.second * height.second / 3.0;
 }
