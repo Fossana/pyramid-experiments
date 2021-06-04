@@ -37,7 +37,8 @@ int main()
     std::set<std::pair<int, int>> processedHeightToBaseLengthRatios;
 
     Pyramid khufu(KHUFU_BASE_LENGTH, KHUFU_HEIGHT);
-    processedHeightToBaseLengthRatios.insert(MathUtilities::ReduceFraction(KHUFU_HEIGHT, KHUFU_BASE_LENGTH));
+    std::pair<int, int> khufuHeightToBaseRatio = MathUtilities::ReduceFraction(KHUFU_HEIGHT, KHUFU_BASE_LENGTH);
+    processedHeightToBaseLengthRatios.insert(khufuHeightToBaseRatio);
     khufu.Print();
     std::cout << '\n';
     GetClosestResult khufuClosestPi = khufu.GetClosest(pi);
@@ -82,8 +83,9 @@ int main()
     {
         for (int jHeight = MIN_HEIGHT; jHeight <= MAX_HEIGHT; ++jHeight)
         {
-            // Check if the ratio of the height to base length has already been processed:
-            if (processedHeightToBaseLengthRatios.count(MathUtilities::ReduceFraction(jHeight, iBaseLength)) > 0)
+            // Check if the ratio of the height to base length is the same as Khufu:
+            std::pair<int, int> reducedHeightToBaseRatio = MathUtilities::ReduceFraction(jHeight, iBaseLength);
+            if (reducedHeightToBaseRatio.first == khufuHeightToBaseRatio.first && reducedHeightToBaseRatio.second == khufuHeightToBaseRatio.second)
             {
                 continue;
             }
@@ -102,7 +104,7 @@ int main()
                 continue;
             }
 
-            // Check if the ratio of the base perimeter to the height is acceptable
+            // Check if the ratio of the base perimeter to the height encodes the Earth's parameters
             Pyramid pyramid(iBaseLength, jHeight);
             //double basePerimeterToHeight = pyramid.GetBasePerimeter() / pyramid.GetHeight();
             //if (CalculateRelativeError(basePerimeterToHeight, equatorialCircumferenceToPolarRadius) > 0.01)
